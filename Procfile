@@ -1,0 +1,1 @@
+web: gunicorn nhl.app:app --log-file=-

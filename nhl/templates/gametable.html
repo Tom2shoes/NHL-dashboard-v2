@@ -1,0 +1,49 @@
+{% extends "template.html" %}
+ 
+{% block content %}
+<div class="container-fluid" style="margin-top:10px;">
+    <div class="bg col-md-10 offset-md-1">
+        <div class="text-center">
+        <h1>{{ game_data["Away Team"] }} vs {{ game_data["Home Team"] }}</h1>
+        </div>
+        <div>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th class="table-head"></th>
+                        <th class="table-head">{{ game_data["Away Team"] }} (Away)</th>
+                        <th class="table-head">{{ game_data["Home Team"] }} (Home)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Goals Made</td>
+                        <td>{{ game_data["Away Goals"] }}</td>
+                        <td>{{ game_data["Home Goals"] }}</td>
+                    </tr>
+                    <tr>
+                        <td>Shots On Goal</td>
+                        <td>{{ game_data["Away Shots"] }}</td>
+                        <td>{{ game_data["Home Shots"] }}</td>
+                    </tr>
+                    <tr>
+                        <td>Takeaways</td>
+                        <td>{{ game_data["Away Takeaways"] }}</td>
+                        <td>{{ game_data["Home Takeaways"] }}</td>
+                    </tr>
+                    <tr>
+                        <td>Giveaways</td>
+                        <td>{{ game_data["Away Giveaways"] }}</td>
+                        <td>{{ game_data["Home Giveaways"] }}</td>
+                    </tr>
+                    <tr>
+                        <td>Penalty Minutes</td>
+                        <td>{{ game_data["Away Penalty Minutes"] }}</td>
+                        <td>{{ game_data["Home Penalty Minutes"] }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+ </div>
+{% endblock %}
