@@ -2,6 +2,7 @@ from flask import Flask, render_template, jsonify
 from flask_pymongo import PyMongo
 import pandas as pd
 from pandas.io.json import json_normalize
+import requests
 
 # # Remote
 # # OLD CHANGE THIS @@@@@@@@@@@@
@@ -17,86 +18,42 @@ mongo = PyMongo(app)
 rank_data = mongo.db.RANK.find({})
 mongo_df = pd.DataFrame(list(rank_data))
 
-pre_df_list = []
-for i in range(31):
-    pre_df_list.append((mongo_df.stats[i][1]['splits'][0]))
-
-stats_df = json_normalize(pre_df_list)
-stats_df.iloc[:, :28] = stats_df.iloc[:, :28].replace('\w\w$', '', regex=True)
-rank_df = stats_df
-
 
 @app.route("/")
 def landing_page():
-    return render_template("index.html",
-                           teamsList=rank_df['team.name'].values.tolist())
+    return render_template("index.html")
+
+@app.route("/playerstats/<searchid>")
+def playerstats(searchid):
+
+    # for team in team_list:
+    #     for player in team['roster']:
+    #         if playername == player['person']['fullName']:
+    #             try:
+    #                 search_team.append(team)
+    #                 search_team = search_team[0]['team']
+                    
+    #                 search_id = player['person']['id']
+    #             except:
+    #                 pass
 
 
-# Route for radar chart data
-@app.route("/chartData")
-def test():
-    rank_df['stat.pts'] = pd.to_numeric(rank_df['stat.pts'])
-    rank_df['stat.faceOffWinPercentage'] = pd.to_numeric(rank_df['stat.faceOffWinPercentage'])
-    rank_df['stat.goalsPerGame'] = pd.to_numeric(rank_df['stat.goalsPerGame'])
-    rank_df['stat.shootingPctRank'] = pd.to_numeric(rank_df['stat.shootingPctRank'])
-    rank_df['stat.wins'] = pd.to_numeric(rank_df['stat.wins'])
+    player_data = []
 
-    df_to_json = {
-            "teamName": rank_df['team.name'].values.tolist(),
-            "pts": rank_df['stat.pts'].values.tolist(),
-            "faceOffWinPercentage": rank_df['stat.faceOffWinPercentage'].values.tolist(),
-            "goalsPerGame": rank_df['stat.goalsPerGame'].values.tolist(),
-            "shootingPctRank": rank_df['stat.shootingPctRank'].values.tolist(),
-            "wins": rank_df['stat.wins'].values.tolist()
-            }
+    stats_url = f"https://statsapi.web.nhl.com/api/v1/people/{searchid}/stats?stats=yearByYear"
+    player_all_seasons = requests.get(stats_url).json()
+    all_stats = player_all_seasons['stats'][0]['splits']
 
-    return jsonify(df_to_json)
+    nhl_stats = []
+
+    for season in range(len(all_stats)):
+        if all_stats[season]['league']['name'] == 'National Hockey League':
+            nhl_stats.append(all_stats[season])
+        else:
+            next
 
 
-# Route to display radar chart
-@app.route("/teamstats")
-def team_stats():
-    return render_template("radar.html", 
-                           teamsList=rank_df['team.name'].values.tolist())
-
-
-@app.route("/latestgame/<team>")
-def away_page(team):
-    game_data = []
-
-    data = mongo.db.BOXSCORES.find({
-        "$or": [
-            {'away_team': team},
-            {'home_team': team}
-        ],
-        'home_shots': {"$gt": 0},
-        'away_shots': {"$gt": 0}}).sort([('game_id', -1)]).limit(1)
-
-    for stat in data:
-        game_data = {
-            "game id": stat["game_id"],
-            "Home Goals": stat["home_goals"],
-            "Home Shots": stat["home_shots"],
-            "Home Penalty Minutes": stat["home_pim"],
-            "Home Takeaways": stat["home_takeaway"],
-            "Home Team": stat["home_team"],
-            "Home Giveaways": stat["home_giveaway"],
-            "Away Team": stat["away_team"],
-            "Away Goals": stat["away_goals"],
-            "Away Shots": stat["away_shots"],
-            "Away Penalty Minutes": stat["away_pim"],
-            "Away Takeaways": stat["away_takeaway"],
-            "Away Giveaways": stat["away_giveaway"]
-        }
-
-    if game_data["Home Shots"] == 0:
-        return ("Game not yet played")
-    else:
-        return render_template("gametable.html",
-                               team=team,
-                               game_data=game_data,
-                               teamsList=rank_df['team.name'].values.tolist())
-
+    return jsonify(nhl_stats[-1])
 
 if __name__ == "__main__":
     app.run(debug=True)
