@@ -3,16 +3,15 @@ from flask_pymongo import PyMongo
 import pandas as pd
 from pandas.io.json import json_normalize
 
-# # Remote
-# # OLD CHANGE THIS @@@@@@@@@@@@
-# app = Flask(__name__)
-# app.config["MONGO_URI"] = "mongodb://nhldashboard:password1@ds215370.mlab.com:15370/heroku_5gkg84qp"
-# mongo = PyMongo(app)
+# Remote
+app = Flask(__name__)
+app.config["MONGO_URI"] = "mongodb://user1:password1@ds157089.mlab.com:57089/heroku_v200ppx7"
+mongo = PyMongo(app)
 
 # Local
-app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb://localhost:27017/nhl-database"
-mongo = PyMongo(app)
+# app = Flask(__name__)
+# app.config["MONGO_URI"] = "mongodb://localhost:27017/nhl-database"
+# mongo = PyMongo(app)
 
 rank_data = mongo.db.RANK.find({})
 mongo_df = pd.DataFrame(list(rank_data))
