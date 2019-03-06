@@ -1,7 +1,18 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request, url_for, redirect
 from flask_pymongo import PyMongo
 import pandas as pd
 from pandas.io.json import json_normalize
+from flask_wtf import FlaskForm
+from wtforms import StringField, SubmitField
+from wtforms.validators import DataRequired
+import requests
+import json
+
+
+class MyForm(FlaskForm):
+    name = StringField('name', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired()])
+    submit = SubmitField('Submitt')
 
 # # Remote
 # # OLD CHANGE THIS @@@@@@@@@@@@
@@ -11,6 +22,7 @@ from pandas.io.json import json_normalize
 
 # Local
 app = Flask(__name__)
+app.config['WTF_CSRF_ENABLED'] = False
 app.config["MONGO_URI"] = "mongodb://localhost:27017/nhl-database"
 mongo = PyMongo(app)
 
@@ -51,6 +63,49 @@ def test():
             }
 
     return jsonify(df_to_json)
+
+
+@app.route('/success/<name>')
+def success(name):
+   return 'welcome %s' % name
+
+@app.route('/login',methods = ['POST', 'GET'])
+def login():
+   if request.method == 'POST':
+      user = request.form['nm']
+      return redirect(url_for('success',name = user))
+   else:
+      user = request.args.get('nm')
+      return redirect(url_for('success',name = user))
+
+
+
+@app.route('/playerSearch', methods=('GET', 'POST'))
+def search():
+    return render_template("playerSearch.html")
+
+
+@app.route('/searchplayer/<playernum>', methods=('GET', 'POST'))
+def submit(playernum):
+    r = requests.get('https://statsapi.web.nhl.com/api/v1/people/' + playernum)
+    dictionary = r.json()
+    # print(dictionary)
+    return jsonify(dictionary)
+
+
+@app.route("/get-reg")
+def getreg():
+    return render_template('login.html')
+
+
+@app.route('/save-get', methods=['POST', 'GET'])
+def saveget():
+    if request.method =='GET':
+       a = request.args.get('name', '')
+       b = request.args.get('email', '')
+       return "Name : "+a+" ,  Email :  "+a
+    else:
+        return "Not get method"
 
 
 # Route to display radar chart
